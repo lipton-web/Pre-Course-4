@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <title>판매페이지</title>
+
+    <meta property="og:title" content="원페이지쇼핑몰" />
+    <meta property="og:description" content="프리미엄 상품 판매 서비스" />
+    <meta property="og:image" content="{{ url_for('static', filename='ogimage.jpg') }}" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Noto Serif KR', serif;
+        }
+        .inner {
+            width: 45rem;
+            margin: 50px auto;
+        }
+        .item-img {
+            width: 750px;
+            height: 550px;
+
+            background-image: url("https://search.pstatic.net/common/?src=http%3A%2F%2Fshop1.phinf.naver.net%2F20210330_28%2F1617068719899Cv8ep_JPEG%2F18204499587595863_1407514820.jpg&type=sc960_832");
+            background-position: center;
+            background-size: cover;
+        }
+        .name {
+            margin: 12px 0;
+        }
+        #exchange_rate {
+            color: blue;
+        }
+        .price{
+            font-size: 20px;
+        }
+        .explain {
+            margin: 12px 0;
+        }
+        .btn {
+            display: block;
+            margin: auto;
+        }
+        .orders{
+            margin-top: 50px;
+        }
+        .orders-list {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function(){
+            exchange_rate();
+            showOrder();
+        });
+
+        function exchange_rate() {
+            $.ajax({
+                type: "GET",
+                url: "https://api.manana.kr/exchange/rate.json",
+                data: {},
+                success: function(response){
+                    // console.log(response);
+                    let rate = response[1]['rate'];
+                    $("#exchange_rate").text(`달러-원 환율 : ${rate}`);
+                    }
+                 })
+            }
+
+        function makeOrder() {
+            let name = $('#order-name').val()
+            let amount = $('#order-amount').val()
+            let address = $('#order-address').val()
+            let phoneNumber = $('#phone-number').val()
+
+            if (name === '') {
+                alert('이름을 입력해주세요');
+                $('#order-name').focus();
+                return
+            } else if (isNaN(amount)) {
+                alert('수량을 입력해주세요');
+                $('#order-amount').focus();
+                return
+            } else if (address === '') {
+                alert('주소를 입력해주세요');
+                $('#order-address').focus();
+                return
+            } else if (phoneNumber === '') {
+                alert('전화번호를 입력해주세요')
+                $('#phone-number').focus()
+                return
+            } else if (!isCellPhone(phoneNumber)) {
+                alert('전화번호 입력 형식이 틀립니다. \n 010-0000-0000으로 입력해주세요')
+                $('#phone-number').focus()
+                return
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/order",
+                data: {name_give: name, amount_give: amount, address_give: address, phoneNumber_give: phoneNumber},
+                success: function (response) {
+                    alert(response["msg"]);
+                    window.location.reload();
+                }
+            })
+        }
+
+        function isCellPhone(p) {
+            let regPhone = /^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$/;
+            return regPhone.test(p);
+        }
+
+        function showOrder() {
+            $.ajax({
+                type: "GET",
+                url: "/order",
+                data: {},
+                success: function (response) {
+                    let orders = response['all_orders']
+                    // console.log(orders)
+                    for (let i=0; i<orders.length; i++) {
+                        let name = orders[i]['name'];
+                        let amount = orders[i]['amount'];
+                        let address = orders[i]['address'];
+                        let phoneNumber = orders[i]['phoneNumber'];
+                    // console.log(name, amount, address, phoneNumber);
+                    let temp_html = `<tr>
+                                        <td>${name}</td>
+                                        <td>${amount}</td>
+                                        <td>${address}</td>
+                                        <td>${phoneNumber}</td>
+                                     </tr>`
+                      $('#orders-box').append(temp_html)
+                    }
+                }
+            })
+        }
+
+    </script>
+    
+</head>
+
+<body>
+    <div class="inner">
+        <div class="product">
+
+            <div class="item-img"></div>
+
+            <div class="name">
+                <h1>LG 나노셀 TV 75NANO93KNB 75인치</h1><span class="price">가격 : 3,373,000원</span>
+            </div>
+
+            <div class="explain">
+                <p>섬세한 색상 제어로 더욱 생생한 퓨어컬러<br>
+                    약 1㎚(나노미터)의 미세한 천연염료 입자를 패널에 직접 적용한 나노셀 TV는
+                    색의 순도를 높여 보다 정확한 색을 표현합니다</p>
+                <p id="exchange_rate"></p>
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-default">주문자 이름</span>
+                </div>
+                <input type="text" id="order-name" class="form-control" aria-label="Default"
+                       aria-describedby="inputGroup-sizing-default">
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">수량</label>
+                </div>
+                <select class="custom-select" id="order-amount">
+                    <option selected>--수량을 선택하세요--</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-default">주소</span>
+                </div>
+                <input type="text" id="order-address" class="form-control" aria-label="Default"
+                       aria-describedby="inputGroup-sizing-default">
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-default">전화번호</span>
+                </div>
+                <input type="text" id="phone-number" class="form-control" aria-label="Default"
+                       aria-describedby="inputGroup-sizing-default">
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="makeOrder()">주문하기</button>
+        </div>
+
+
+        <div class="orders">
+            <table class="table">
+                <span class="orders-list">주문 목록</span>
+                <thead>
+                <tr>
+                    <th scope="col">이름</th>
+                    <th scope="col">수량</th>
+                    <th scope="col">주소</th>
+                    <th scope="col">전화번호</th>
+                </tr>
+                </thead>
+                <tbody id="orders-box">
+                <!--temp_html 주문내용 들어갑니다.-->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+</body>
+
+</html>
